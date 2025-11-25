@@ -1,0 +1,89 @@
+name: Build macOS App
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  # Cho phép chạy thủ công từ tab Actions
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Build macOS App
+        run: |
+          pyinstaller --onefile --windowed \
+            --name "PDF Tool" \
+            --add-data "README.md:." \
+            pdf_tool.py
+      
+      - name: Create DMG (optional packaging)
+        run: |
+          # Tạo thư mục cho DMG
+          mkdir -p dmg_contents
+          cp -r "dist/PDF Tool.app" dmg_contents/
+          
+          # Tạo DMG file
+          hdiutil create -volname "PDF Tool" \
+            -srcfolder dmg_contents \
+            -ov -format UDZO \
+            "dist/PDF-Tool-macOS.dmg"
+      
+      - name: Upload App artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF-Tool-macOS-App
+          path: dist/PDF Tool.app
+          retention-days: 30
+      
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF-Tool-macOS-DMG
+          path: dist/PDF-Tool-macOS.dmg
+          retention-days: 30
+
+  # Optional: Build cho Windows nếu cần
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Build Windows App
+        run: |
+          pyinstaller --onefile --windowed --name "PDF Tool" pdf_tool.py
+      
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF-Tool-Windows
+          path: dist/PDF Tool.exe
+          retention-days: 30

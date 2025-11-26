@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 """
-PDF Split & Join Tool
+PDF for Linh
 Ứng dụng để chia nhỏ và gộp file PDF
 """
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import os
+from datetime import datetime
 from PyPDF2 import PdfReader, PdfWriter
 
 
 class PDFToolApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("PDF Split & Join Tool")
-        self.root.geometry("600x500")
+        self.root.title("PDF for Linh")
+        self.root.geometry("550x450")
         self.root.resizable(True, True)
         
         # Danh sách file để join
@@ -48,39 +49,23 @@ class PDFToolApp:
         ttk.Entry(file_frame, textvariable=self.split_file_var, state='readonly').pack(side=tk.LEFT, fill=tk.X, expand=True)
         ttk.Button(file_frame, text="Chọn file", command=self.select_split_file).pack(side=tk.RIGHT, padx=(10, 0))
         
-        # Split options
-        ttk.Label(parent, text="Cách chia:").pack(anchor=tk.W, pady=(10, 5))
+        # Hiển thị số trang
+        self.page_info_var = tk.StringVar()
+        ttk.Label(parent, textvariable=self.page_info_var, foreground='blue').pack(anchor=tk.W, pady=(0, 10))
         
-        self.split_mode = tk.StringVar(value="each")
-        
-        ttk.Radiobutton(parent, text="Mỗi trang thành 1 file", variable=self.split_mode, value="each").pack(anchor=tk.W)
+        # Range input
+        ttk.Label(parent, text="Nhập khoảng trang cần chia:").pack(anchor=tk.W, pady=(10, 5))
         
         range_frame = ttk.Frame(parent)
-        range_frame.pack(anchor=tk.W, pady=5)
-        ttk.Radiobutton(range_frame, text="Theo khoảng trang:", variable=self.split_mode, value="range").pack(side=tk.LEFT)
-        self.range_entry = ttk.Entry(range_frame, width=20)
-        self.range_entry.pack(side=tk.LEFT, padx=(10, 0))
-        ttk.Label(range_frame, text="(VD: 1-3, 4-6, 7-10)").pack(side=tk.LEFT, padx=(5, 0))
+        range_frame.pack(fill=tk.X, pady=(0, 5))
         
-        pages_frame = ttk.Frame(parent)
-        pages_frame.pack(anchor=tk.W, pady=5)
-        ttk.Radiobutton(pages_frame, text="Mỗi file có số trang:", variable=self.split_mode, value="chunks").pack(side=tk.LEFT)
-        self.chunks_entry = ttk.Entry(pages_frame, width=10)
-        self.chunks_entry.pack(side=tk.LEFT, padx=(10, 0))
-        self.chunks_entry.insert(0, "5")
+        self.range_entry = ttk.Entry(range_frame)
+        self.range_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
         
-        # Output folder
-        ttk.Label(parent, text="Thư mục lưu:").pack(anchor=tk.W, pady=(15, 5))
-        
-        output_frame = ttk.Frame(parent)
-        output_frame.pack(fill=tk.X, pady=(0, 15))
-        
-        self.split_output_var = tk.StringVar()
-        ttk.Entry(output_frame, textvariable=self.split_output_var, state='readonly').pack(side=tk.LEFT, fill=tk.X, expand=True)
-        ttk.Button(output_frame, text="Chọn thư mục", command=self.select_split_output).pack(side=tk.RIGHT, padx=(10, 0))
+        ttk.Label(parent, text="VD: 1-3, 4-6, 7-10  hoặc  1, 3, 5  hoặc  1-3, 5, 7-10", foreground='gray').pack(anchor=tk.W)
         
         # Split button
-        ttk.Button(parent, text="SPLIT PDF", command=self.split_pdf, style='Accent.TButton').pack(pady=20)
+        ttk.Button(parent, text="SPLIT PDF", command=self.split_pdf).pack(pady=30)
         
         # Status
         self.split_status = tk.StringVar()
@@ -111,18 +96,8 @@ class PDFToolApp:
         ttk.Button(btn_frame, text="Xuống ↓", command=self.move_down).pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame, text="Xóa tất cả", command=self.clear_files).pack(side=tk.RIGHT)
         
-        # Output file
-        ttk.Label(parent, text="Lưu file kết quả:").pack(anchor=tk.W, pady=(10, 5))
-        
-        output_frame = ttk.Frame(parent)
-        output_frame.pack(fill=tk.X, pady=(0, 15))
-        
-        self.join_output_var = tk.StringVar()
-        ttk.Entry(output_frame, textvariable=self.join_output_var, state='readonly').pack(side=tk.LEFT, fill=tk.X, expand=True)
-        ttk.Button(output_frame, text="Chọn vị trí", command=self.select_join_output).pack(side=tk.RIGHT, padx=(10, 0))
-        
         # Join button
-        ttk.Button(parent, text="JOIN PDFs", command=self.join_pdfs, style='Accent.TButton').pack(pady=10)
+        ttk.Button(parent, text="JOIN PDFs", command=self.join_pdfs).pack(pady=20)
         
         # Status
         self.join_status = tk.StringVar()
@@ -136,89 +111,63 @@ class PDFToolApp:
         )
         if file:
             self.split_file_var.set(file)
-            # Auto set output folder
-            self.split_output_var.set(os.path.dirname(file))
-    
-    def select_split_output(self):
-        folder = filedialog.askdirectory(title="Chọn thư mục lưu")
-        if folder:
-            self.split_output_var.set(folder)
+            # Hiển thị số trang
+            try:
+                reader = PdfReader(file)
+                total_pages = len(reader.pages)
+                self.page_info_var.set(f"File có {total_pages} trang")
+            except:
+                self.page_info_var.set("")
     
     def split_pdf(self):
         input_file = self.split_file_var.get()
-        output_folder = self.split_output_var.get()
         
         if not input_file:
             messagebox.showerror("Lỗi", "Vui lòng chọn file PDF!")
             return
-        if not output_folder:
-            messagebox.showerror("Lỗi", "Vui lòng chọn thư mục lưu!")
+        
+        ranges = self.range_entry.get().strip()
+        if not ranges:
+            messagebox.showerror("Lỗi", "Vui lòng nhập khoảng trang!")
             return
         
         try:
             reader = PdfReader(input_file)
             total_pages = len(reader.pages)
             base_name = os.path.splitext(os.path.basename(input_file))[0]
+            output_folder = os.path.dirname(input_file)
             
-            mode = self.split_mode.get()
-            
-            if mode == "each":
-                # Mỗi trang 1 file
-                for i in range(total_pages):
-                    writer = PdfWriter()
+            file_count = 0
+            for r in ranges.split(','):
+                r = r.strip()
+                if '-' in r:
+                    start, end = map(int, r.split('-'))
+                else:
+                    start = end = int(r)
+                
+                # Kiểm tra trang hợp lệ
+                if start < 1 or end > total_pages or start > end:
+                    messagebox.showerror("Lỗi", f"Khoảng trang {r} không hợp lệ! File có {total_pages} trang.")
+                    return
+                
+                writer = PdfWriter()
+                for i in range(start - 1, end):
                     writer.add_page(reader.pages[i])
-                    output_path = os.path.join(output_folder, f"{base_name}_page_{i+1}.pdf")
-                    with open(output_path, 'wb') as f:
-                        writer.write(f)
-                self.split_status.set(f"Đã chia thành {total_pages} file!")
-            
-            elif mode == "range":
-                # Theo khoảng trang
-                ranges = self.range_entry.get().strip()
-                if not ranges:
-                    messagebox.showerror("Lỗi", "Vui lòng nhập khoảng trang!")
-                    return
                 
-                for idx, r in enumerate(ranges.split(',')):
-                    r = r.strip()
-                    if '-' in r:
-                        start, end = map(int, r.split('-'))
-                    else:
-                        start = end = int(r)
-                    
-                    writer = PdfWriter()
-                    for i in range(start - 1, min(end, total_pages)):
-                        writer.add_page(reader.pages[i])
-                    
+                if start == end:
+                    output_path = os.path.join(output_folder, f"{base_name}_page_{start}.pdf")
+                else:
                     output_path = os.path.join(output_folder, f"{base_name}_pages_{start}-{end}.pdf")
-                    with open(output_path, 'wb') as f:
-                        writer.write(f)
                 
-                self.split_status.set(f"Đã chia theo khoảng trang!")
+                with open(output_path, 'wb') as f:
+                    writer.write(f)
+                file_count += 1
             
-            elif mode == "chunks":
-                # Chia theo số trang mỗi file
-                try:
-                    chunk_size = int(self.chunks_entry.get())
-                except ValueError:
-                    messagebox.showerror("Lỗi", "Số trang không hợp lệ!")
-                    return
-                
-                file_count = 0
-                for i in range(0, total_pages, chunk_size):
-                    writer = PdfWriter()
-                    for j in range(i, min(i + chunk_size, total_pages)):
-                        writer.add_page(reader.pages[j])
-                    
-                    file_count += 1
-                    output_path = os.path.join(output_folder, f"{base_name}_part_{file_count}.pdf")
-                    with open(output_path, 'wb') as f:
-                        writer.write(f)
-                
-                self.split_status.set(f"Đã chia thành {file_count} file!")
+            self.split_status.set(f"Đã chia thành {file_count} file!")
+            messagebox.showinfo("Thành công", f"Chia file PDF thành công!\n\nLinh Cảm Ơn 💕")
             
-            messagebox.showinfo("Thành công", "Chia file PDF thành công!")
-            
+        except ValueError:
+            messagebox.showerror("Lỗi", "Định dạng khoảng trang không hợp lệ!\nVD: 1-3, 4-6 hoặc 1, 3, 5")
         except Exception as e:
             messagebox.showerror("Lỗi", f"Có lỗi xảy ra: {str(e)}")
     
@@ -244,9 +193,7 @@ class PDFToolApp:
         selection = self.file_listbox.curselection()
         if selection and selection[0] > 0:
             idx = selection[0]
-            # Swap in list
             self.files_to_join[idx], self.files_to_join[idx-1] = self.files_to_join[idx-1], self.files_to_join[idx]
-            # Update listbox
             text = self.file_listbox.get(idx)
             self.file_listbox.delete(idx)
             self.file_listbox.insert(idx-1, text)
@@ -256,9 +203,7 @@ class PDFToolApp:
         selection = self.file_listbox.curselection()
         if selection and selection[0] < len(self.files_to_join) - 1:
             idx = selection[0]
-            # Swap in list
             self.files_to_join[idx], self.files_to_join[idx+1] = self.files_to_join[idx+1], self.files_to_join[idx]
-            # Update listbox
             text = self.file_listbox.get(idx)
             self.file_listbox.delete(idx)
             self.file_listbox.insert(idx+1, text)
@@ -268,23 +213,9 @@ class PDFToolApp:
         self.file_listbox.delete(0, tk.END)
         self.files_to_join.clear()
     
-    def select_join_output(self):
-        file = filedialog.asksaveasfilename(
-            title="Lưu file PDF",
-            defaultextension=".pdf",
-            filetypes=[("PDF files", "*.pdf")]
-        )
-        if file:
-            self.join_output_var.set(file)
-    
     def join_pdfs(self):
         if len(self.files_to_join) < 2:
             messagebox.showerror("Lỗi", "Vui lòng thêm ít nhất 2 file PDF!")
-            return
-        
-        output_file = self.join_output_var.get()
-        if not output_file:
-            messagebox.showerror("Lỗi", "Vui lòng chọn vị trí lưu file!")
             return
         
         try:
@@ -295,11 +226,16 @@ class PDFToolApp:
                 for page in reader.pages:
                     writer.add_page(page)
             
+            # Tự động đặt tên và lưu cùng thư mục với file đầu tiên
+            output_folder = os.path.dirname(self.files_to_join[0])
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_file = os.path.join(output_folder, f"Merged_PDF_{timestamp}.pdf")
+            
             with open(output_file, 'wb') as f:
                 writer.write(f)
             
-            self.join_status.set(f"Đã gộp {len(self.files_to_join)} file thành công!")
-            messagebox.showinfo("Thành công", "Gộp file PDF thành công!")
+            self.join_status.set(f"Đã gộp {len(self.files_to_join)} file!")
+            messagebox.showinfo("Thành công", f"Gộp file PDF thành công!\n\nFile đã lưu: {os.path.basename(output_file)}\n\nLinh Cảm Ơn 💕")
             
         except Exception as e:
             messagebox.showerror("Lỗi", f"Có lỗi xảy ra: {str(e)}")
@@ -311,7 +247,7 @@ def main():
     # Style
     style = ttk.Style()
     if 'aqua' in style.theme_names():
-        style.theme_use('aqua')  # macOS native look
+        style.theme_use('aqua')
     
     app = PDFToolApp(root)
     root.mainloop()

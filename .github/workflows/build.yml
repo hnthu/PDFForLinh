@@ -29,34 +29,33 @@ jobs:
       - name: Build macOS App
         run: |
           pyinstaller --onefile --windowed \
-            --name "PDF Tool" \
-            --add-data "README.md:." \
+            --name "PDF for Linh" \
             pdf_tool.py
       
       - name: Create DMG (optional packaging)
         run: |
           # Tạo thư mục cho DMG
           mkdir -p dmg_contents
-          cp -r "dist/PDF Tool.app" dmg_contents/
+          cp -r "dist/PDF for Linh.app" dmg_contents/
           
           # Tạo DMG file
-          hdiutil create -volname "PDF Tool" \
+          hdiutil create -volname "PDF for Linh" \
             -srcfolder dmg_contents \
             -ov -format UDZO \
-            "dist/PDF-Tool-macOS.dmg"
+            "dist/PDF-for-Linh-macOS.dmg"
       
       - name: Upload App artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PDF-Tool-macOS-App
-          path: dist/PDF Tool.app
+          name: PDF-for-Linh-macOS-App
+          path: dist/PDF for Linh.app
           retention-days: 30
       
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PDF-Tool-macOS-DMG
-          path: dist/PDF-Tool-macOS.dmg
+          name: PDF-for-Linh-macOS-DMG
+          path: dist/PDF-for-Linh-macOS.dmg
           retention-days: 30
 
   # Optional: Build cho Windows nếu cần
@@ -79,11 +78,11 @@ jobs:
       
       - name: Build Windows App
         run: |
-          pyinstaller --onefile --windowed --name "PDF Tool" pdf_tool.py
+          pyinstaller --onefile --windowed --name "PDF for Linh" pdf_tool.py
       
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PDF-Tool-Windows
-          path: dist/PDF Tool.exe
+          name: PDF-for-Linh-Windows
+          path: dist/PDF for Linh.exe
           retention-days: 30

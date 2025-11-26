@@ -1,78 +1,123 @@
-# PDF Split & Join Tool
+# 🌸 PDF for Linh 🌸
 
-Ứng dụng đơn giản để chia nhỏ và gộp file PDF với giao diện đồ họa.
+Ứng dụng chia nhỏ và gộp file PDF với giao diện dễ thương 💕
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-lightgrey)
 
-## Tính năng
+## ✨ Tính năng
 
-### Split PDF (Chia file)
-- **Mỗi trang 1 file**: Tách từng trang thành file riêng biệt
-- **Theo khoảng trang**: Chia theo khoảng tùy chọn (VD: 1-3, 4-6, 7-10)
-- **Theo số trang**: Chia file với số trang cố định mỗi file
+### ✂️ Chia PDF (Split)
+- Chia theo khoảng trang tùy chọn (VD: `1-3, 4-6, 7-10`)
+- Chia từng trang riêng lẻ (VD: `1, 3, 5, 7`)
+- Kết hợp cả hai cách (VD: `1-3, 5, 7-10`)
+- **Tự động lưu** cùng thư mục với file gốc
 
-### Join PDFs (Gộp file)
+### 📎 Gộp PDF (Join)
 - Gộp nhiều file PDF thành một
-- Sắp xếp thứ tự file trước khi gộp
-- Thêm/xóa file dễ dàng
+- Sắp xếp thứ tự file trước khi gộp (lên/xuống)
+- **Tự động đặt tên** file (Merged_PDF_timestamp.pdf)
+- **Tự động lưu** cùng thư mục với file đầu tiên
 
-## Cài đặt
+### 🎀 Giao diện dễ thương
+- Màu pastel hồng, tím, vàng nhạt
+- Icon emoji cute
+- Font tròn dễ đọc
+- Nút bấm đổi màu khi hover
+- Thông báo vui vẻ 💕
 
-### Tải app đã build sẵn
-1. Vào tab **Actions** của repo này
-2. Chọn workflow **Build macOS App** mới nhất
-3. Tải **PDF-Tool-macOS-DMG** hoặc **PDF-Tool-Windows**
+## 📥 Cài đặt
 
-### Chạy từ source code
+### Cách 1: Tải app đã build sẵn (Khuyên dùng)
+
+1. Vào tab **[Actions](../../actions)** của repo này
+2. Click vào workflow **Build macOS App** mới nhất ✅
+3. Kéo xuống phần **Artifacts**
+4. Tải về:
+   - **PDF-for-Linh-macOS-DMG** (cho macOS)
+   - **PDF-for-Linh-Windows** (cho Windows)
+
+#### 🍎 Mở app trên macOS lần đầu
+Vì app chưa có chữ ký Apple, macOS sẽ chặn. Làm theo cách này:
+1. Click chuột phải vào app
+2. Chọn **Open**
+3. Click **Open** trong popup
+
+### Cách 2: Chạy từ source code
 
 ```bash
 # Clone repo
 git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
 cd YOUR_REPO
 
-# Cài dependencies
-pip install -r requirements.txt
+# Cài thư viện
+pip3 install PyPDF2
 
 # Chạy app
-python pdf_tool.py
+python3 pdf_tool.py
 ```
 
-## Build app
-
-### Build trên máy local
+### Cách 3: Tự build app trên máy
 
 ```bash
 # Cài PyInstaller
-pip install pyinstaller
+pip3 install pyinstaller PyPDF2
 
-# Build cho macOS
-pyinstaller --onefile --windowed --name "PDF Tool" pdf_tool.py
+# Build app
+pyinstaller --onefile --windowed --name "PDF for Linh" pdf_tool.py
 
-# App sẽ ở thư mục dist/
+# App nằm trong thư mục dist/
 ```
 
-### Build tự động với GitHub Actions
+## 🖥️ Yêu cầu hệ thống
 
-Push code lên GitHub, app sẽ được build tự động. Tải từ tab Actions.
+| Hệ điều hành | Phiên bản |
+|--------------|-----------|
+| macOS | 10.15 (Catalina) trở lên |
+| Windows | Windows 10 trở lên |
+| Python | 3.9+ (nếu chạy từ source) |
 
-## Cấu trúc project
+## 📁 Cấu trúc project
 
 ```
 ├── pdf_tool.py              # Code chính
 ├── requirements.txt         # Dependencies
-├── README.md               # File này
+├── README.md                # File này
+├── .gitignore              # Ignore files
 └── .github/
     └── workflows/
-        └── build.yml       # GitHub Actions workflow
+        └── build.yml        # GitHub Actions workflow
 ```
 
-## Yêu cầu hệ thống
+## 🐛 Lỗi thường gặp
 
-- **macOS**: 10.15 (Catalina) trở lên
-- **Windows**: Windows 10 trở lên
-- **Python**: 3.9+ (nếu chạy từ source)
+| Lỗi | Cách sửa |
+|-----|----------|
+| "App can't be opened" | Click chuột phải → Open |
+| "Python not found" | Cài Python: `brew install python` |
+| "No module named PyPDF2" | Chạy: `pip3 install PyPDF2` |
+| "tkinter not found" | Chạy: `brew install python-tk` |
 
-## License
+## 📝 Cách sử dụng
+
+### Chia PDF
+1. Mở app → Tab **✂️ Chia PDF**
+2. Click **🔍 Chọn file** → chọn file PDF
+3. Nhập khoảng trang (VD: `1-5, 6-10`)
+4. Click **✂️ CHIA FILE ✂️**
+5. File mới sẽ lưu cùng thư mục với file gốc 🎉
+
+### Gộp PDF
+1. Mở app → Tab **📎 Gộp PDF**
+2. Click **➕ Thêm** → chọn các file PDF
+3. Dùng **⬆️ ⬇️** để sắp xếp thứ tự
+4. Click **📎 GỘP FILE 📎**
+5. File mới sẽ lưu cùng thư mục với file đầu tiên 🎉
+
+## 💕 Credit
+
+Made with love for Linh ✨
+
+## 📄 License
 
 MIT License

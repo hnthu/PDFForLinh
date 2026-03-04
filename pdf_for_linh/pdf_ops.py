@@ -5,72 +5,70 @@ Pure PDF operations: split and join.
 No UI dependencies.
 """
 
-import os
+from __future__ import annotations
+
 from datetime import datetime
+from pathlib import Path
 
 from PyPDF2 import PdfReader, PdfWriter
 
 
-def get_page_count(file_path):
+def get_page_count(path: str | Path) -> int:
     """Return the number of pages in a PDF file."""
-    return len(PdfReader(file_path).pages)
+    return len(PdfReader(str(path)).pages)
 
 
-def split_pdf(input_file, ranges_str):
-    """
-    Split a PDF into segments defined by ranges_str (e.g. "1-3, 4-6, 7").
+def split_pdf(input_path: str | Path, ranges_str: str) -> list[Path]:
+    """Split a PDF into segments defined by *ranges_str* (e.g. ``"1-3, 4-6, 7"``).
 
     Returns a list of output file paths created.
-    Raises ValueError for invalid page ranges.
+    Raises :class:`ValueError` for invalid page ranges.
     """
-    reader = PdfReader(input_file)
-    total_pages = len(reader.pages)
-    base_name = os.path.splitext(os.path.basename(input_file))[0]
-    output_folder = os.path.dirname(input_file)
+    path = Path(input_path)
+    reader = PdfReader(str(path))
+    total = len(reader.pages)
+    out_dir = path.parent
 
-    outputs = []
-    for part in ranges_str.split(','):
+    outputs: list[Path] = []
+    for part in ranges_str.split(","):
         part = part.strip()
-        if '-' in part:
-            start, end = map(int, part.split('-'))
+        if "-" in part:
+            start, end = map(int, part.split("-"))
         else:
             start = end = int(part)
 
-        if start < 1 or end > total_pages or start > end:
-            raise ValueError(f"Invalid range '{part}': file has {total_pages} pages")
+        if start < 1 or end > total or start > end:
+            raise ValueError(f"Invalid range '{part}': file has {total} pages")
 
         writer = PdfWriter()
         for i in range(start - 1, end):
             writer.add_page(reader.pages[i])
 
-        if start == end:
-            out_path = os.path.join(output_folder, f"{base_name}_page_{start}.pdf")
-        else:
-            out_path = os.path.join(output_folder, f"{base_name}_pages_{start}-{end}.pdf")
-
-        with open(out_path, 'wb') as f:
+        name = (
+            f"{path.stem}_page_{start}.pdf"
+            if start == end
+            else f"{path.stem}_pages_{start}-{end}.pdf"
+        )
+        out_path = out_dir / name
+        with out_path.open("wb") as f:
             writer.write(f)
         outputs.append(out_path)
 
     return outputs
 
 
-def join_pdfs(files, output_folder):
-    """
-    Merge a list of PDF files into a single output file.
+def join_pdfs(files: list[str | Path], output_folder: str | Path) -> Path:
+    """Merge a list of PDF files into a single output file.
 
     Returns the output file path.
     """
     writer = PdfWriter()
     for pdf_file in files:
-        reader = PdfReader(pdf_file)
-        for page in reader.pages:
+        for page in PdfReader(str(pdf_file)).pages:
             writer.add_page(page)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = os.path.join(output_folder, f"Merged_PDF_{timestamp}.pdf")
-
-    with open(output_file, 'wb') as f:
+    out_path = Path(output_folder) / f"Merged_PDF_{timestamp}.pdf"
+    with out_path.open("wb") as f:
         writer.write(f)
-
-    return output_file
+    return out_path
